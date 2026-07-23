@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대응표로 이차함수 그래프 그리기</title>
+<style>
+  :root{
+    --ink:#111827;
+    --muted:#6b7280;
+    --line:#b3b3b3;
+    --accent:#2563eb;
+    --accent-soft:#dbeafe;
+    --ok:#16a34a;
+    --bad:#dc2626;
+    --panel:#f8fafc;
+    --border:#d1d5db;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    padding:24px;
+    font-family:"Noto Sans KR","Malgun Gothic",Arial,sans-serif;
+    color:var(--ink);
+    background:#fff;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:28px;margin:0 0 8px}
+  .lead{margin:0 0 20px;color:var(--muted);line-height:1.6}
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(300px,390px) minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+  .panel{
+    border:1px solid var(--border);
+    border-radius:16px;
+    background:var(--panel);
+    padding:18px;
+  }
+  .step{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:30px;height:30px;
+    border-radius:50%;
+    background:var(--ink);
+    color:#fff;
+    font-weight:700;
+    margin-right:8px;
+  }
+  h2{font-size:19px;margin:0 0 14px;display:flex;align-items:center}
+  .function-box{
+    border:2px solid var(--ink);
+    border-radius:12px;
+    padding:15px;
+    background:#fff;
+    text-align:center;
+    font-family:"Times New Roman",serif;
+    font-size:30px;
+    margin-bottom:14px;
+  }
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  button{
+    border:1px solid var(--border);
+    background:#fff;
+    color:var(--ink);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  button:hover{background:#f3f4f6}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.danger{color:var(--bad)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  table{width:100%;border-collapse:collapse;background:#fff;margin-top:12px}
+  th,td{border:1px solid var(--border);padding:9px;text-align:center}
+  th{background:#eef2f7}
+  td.vertex-col{background:#fff7d6}
+  input[type="number"]{
+    width:70px;
+    padding:8px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    text-align:center;
+    font-size:16px;
+  }
+  input.correct{border:2px solid var(--ok);background:#f0fdf4}
+  input.wrong{border:2px solid var(--bad);background:#fef2f2}
+  .hint{font-size:14px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+  .status{
+    min-height:48px;
+    padding:11px 13px;
+    border-radius:10px;
+    background:#fff;
+    border:1px solid var(--border);
+    line-height:1.5;
+    margin-top:12px;
+  }
+  .status.ok{border-color:#86efac;background:#f0fdf4;color:#166534}
+  .status.bad{border-color:#fca5a5;background:#fef2f2;color:#991b1b}
+  .graph-panel{padding:12px}
+  .canvas-wrap{
+    width:100%;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+  }
+  canvas{
+    width:min(100%,820px);
+    height:auto;
+    display:block;
+    background:#fff;
+    touch-action:none;
+  }
+  .legend{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+    margin:8px 4px 0;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+  .blue{background:var(--accent)}
+  .red{background:var(--bad)}
+  .yellow{background:#f59e0b}
+  @media(max-width:900px){
+    body{padding:14px}
+    .layout{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>대응표로 이차함수 그래프 그리기</h1>
+  <p class="lead">
+    ① 식을 보고 대응표의 다섯 y값을 구하세요. 왼쪽에서 세 번째 열은 꼭짓점입니다.
+    ② 표를 확인한 뒤 좌표평면에 다섯 점을 찍으세요. 맞는 점은 연결되고, 틀린 점은 빨간색으로 표시됩니다.
+  </p>
+
+  <div class="layout">
+    <section class="panel" aria-labelledby="step1">
+      <h2 id="step1"><span class="step">1</span>대응표 완성하기</h2>
+      <div id="functionBox" class="function-box">y = (x - 1)² - 2</div>
+
+      <div class="toolbar">
+        <button type="button" id="newProblem">새 문제</button>
+        <button type="button" id="checkTable" class="primary">대응표 확인</button>
+        <button type="button" id="showAnswers">정답 보기</button>
+      </div>
+
+      <table aria-label="이차함수 대응표">
+        <thead>
+          <tr>
+            <th>x</th>
+            <th id="x0">-1</th>
+            <th id="x1">0</th>
+            <th id="x2" class="vertex-col">1<br><small>꼭짓점</small></th>
+            <th id="x3">2</th>
+            <th id="x4">3</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>y</th>
+            <td><input id="y0" type="number" inputmode="numeric" aria-label="첫 번째 y값"></td>
+            <td><input id="y1" type="number" inputmode="numeric" aria-label="두 번째 y값"></td>
+            <td class="vertex-col"><input id="y2" type="number" inputmode="numeric" aria-label="꼭짓점의 y값"></td>
+            <td><input id="y3" type="number" inputmode="numeric" aria-label="네 번째 y값"></td>
+            <td><input id="y4" type="number" inputmode="numeric" aria-label="다섯 번째 y값"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="hint">식은 꼭짓점형 <b>y = a(x − h)² + k</b>입니다. x값은 h−2, h−1, h, h+1, h+2 순서로 주어집니다.</p>
+
+      <div id="tableStatus" class="status" aria-live="polite">대응표에 y값을 입력하세요.</div>
+
+      <hr style="border:0;border-top:1px solid var(--border);margin:20px 0">
+
+      <h2><span class="step">2</span>좌표평면에 점 찍기</h2>
+      <div class="toolbar">
+        <button type="button" id="undo" class="danger" disabled>되돌리기</button>
+        <button type="button" id="resetGraph">점 모두 지우기</button>
+      </div>
+      <div id="graphStatus" class="status" aria-live="polite">대응표를 모두 맞히면 점 찍기 활동이 시작됩니다.</div>
+    </section>
+
+    <section class="panel graph-panel" aria-label="좌표평면 활동">
+      <div class="canvas-wrap">
+        <canvas id="plane" width="820" height="820" aria-label="마우스나 터치로 점을 찍는 좌표평면"></canvas>
+      </div>
+      <div class="legend">
+        <span><i class="dot blue"></i>맞게 찍은 점</span>
+        <span><i class="dot red"></i>잘못 찍은 점</span>
+        <span><i class="dot yellow"></i>꼭짓점</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById("plane");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const margin = 60, size = W - margin * 2, step = size / 20;
+  const cx = W / 2, cy = H / 2;
+  const X = x => cx + x * step;
+  const Y = y => cy - y * step;
+
+  const state = {
+    a: 1, h: 1, k: -2,
+    xs: [], ys: [],
+    tableReady: false,
+    attempts: [],
+    correctPoints: []
+  };
+
+  const functionBox = document.getElementById("functionBox");
+  const tableStatus = document.getElementById("tableStatus");
+  const graphStatus = document.getElementById("graphStatus");
+  const undoBtn = document.getElementById("undo");
+  const yInputs = Array.from({length:5}, (_,i)=>document.getElementById("y"+i));
+  const xCells = Array.from({length:5}, (_,i)=>document.getElementById("x"+i));
+
+  function signed(n){
+    return n >= 0 ? `+ ${n}` : `− ${Math.abs(n)}`;
+  }
+
+  function functionText(){
+    let inside = state.h === 0 ? "x" : state.h > 0 ? `(x − ${state.h})` : `(x + ${Math.abs(state.h)})`;
+    let aPart = state.a === 1 ? "" : state.a === -1 ? "−" : String(state.a);
+    let base = `${aPart}${inside}²`;
+    if(state.k !== 0) base += ` ${signed(state.k)}`;
+    return `y = ${base}`;
+  }
+
+  function f(x){ return state.a * (x-state.h) * (x-state.h) + state.k; }
+
+  function chooseProblem(){
+    const candidates = [];
+    for(const a of [-2,-1,1,2]){
+      for(let h=-4;h<=4;h++){
+        for(let k=-5;k<=5;k++){
+          const xs=[h-2,h-1,h,h+1,h+2];
+          const ys=xs.map(x=>a*(x-h)*(x-h)+k);
+          if(xs.every(x=>x>=-9&&x<=9) && ys.every(y=>y>=-9&&y<=9)){
+            candidates.push({a,h,k,xs,ys});
+          }
+        }
+      }
+    }
+    const p = candidates[Math.floor(Math.random()*candidates.length)];
+    Object.assign(state,p,{tableReady:false,attempts:[],correctPoints:[]});
+    functionBox.textContent = functionText();
+    state.xs.forEach((x,i)=>{
+      xCells[i].innerHTML = i===2 ? `${x}<br><small>꼭짓점</small>` : String(x);
+      yInputs[i].value="";
+      yInputs[i].className="";
+      yInputs[i].disabled=false;
+    });
+    tableStatus.className="status";
+    tableStatus.textContent="대응표에 y값을 입력하세요.";
+    graphStatus.className="status";
+    graphStatus.textContent="대응표를 모두 맞히면 점 찍기 활동이 시작됩니다.";
+    undoBtn.disabled=true;
+    draw();
+  }
+
+  function drawGrid(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#fff";
+    ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle="#b3b3b3";
+    ctx.lineWidth=1.3;
+    for(let i=-10;i<=10;i++){
+      ctx.beginPath(); ctx.moveTo(X(i),Y(-10)); ctx.lineTo(X(i),Y(10)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(X(-10),Y(i)); ctx.lineTo(X(10),Y(i)); ctx.stroke();
+    }
+
+    ctx.strokeStyle="#000";
+    ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(X(-10),Y(0)); ctx.lineTo(X(10),Y(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(0),Y(-10)); ctx.lineTo(X(0),Y(10)); ctx.stroke();
+
+    ctx.fillStyle="#000";
+    ctx.beginPath(); ctx.moveTo(X(10),Y(0)); ctx.lineTo(X(10)-11,Y(0)-6); ctx.lineTo(X(10)-11,Y(0)+6); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(X(0),Y(10)); ctx.lineTo(X(0)-6,Y(10)+11); ctx.lineTo(X(0)+6,Y(10)+11); ctx.closePath(); ctx.fill();
+
+    ctx.font="18px Arial";
+    ctx.textAlign="center"; ctx.textBaseline="top";
+    for(let x=-9;x<=9;x++) if(x!==0) ctx.fillText(x,X(x),Y(0)+8);
+
+    ctx.textAlign="right"; ctx.textBaseline="middle";
+    for(let y=-9;y<=9;y++) if(y!==0) ctx.fillText(y,X(0)-8,Y(y));
+
+    ctx.font="italic 22px 'Times New Roman'";
+    ctx.textAlign="right"; ctx.textBaseline="top";
+    ctx.fillText("O",X(0)-6,Y(0)+8);
+
+    ctx.font="italic 24px 'Times New Roman'";
+    ctx.textAlign="left"; ctx.textBaseline="top";
+    ctx.fillText("x",X(10)+10,Y(0)+8);
+    ctx.textAlign="right"; ctx.textBaseline="bottom";
+    ctx.fillText("y",X(0)-8,Y(10)-10);
+  }
+
+  function drawPoint(x,y,color,r=7){
+    ctx.beginPath();
+    ctx.arc(X(x),Y(y),r,0,Math.PI*2);
+    ctx.fillStyle=color;
+    ctx.fill();
+    ctx.lineWidth=2;
+    ctx.strokeStyle="#fff";
+    ctx.stroke();
+  }
+
+  function draw(){
+    drawGrid();
+
+    if(state.correctPoints.length >= 2){
+      const sorted=[...state.correctPoints].sort((a,b)=>a.x-b.x);
+      ctx.beginPath();
+      ctx.moveTo(X(sorted[0].x),Y(sorted[0].y));
+      for(let i=1;i<sorted.length;i++) ctx.lineTo(X(sorted[i].x),Y(sorted[i].y));
+      ctx.strokeStyle="#2563eb";
+      ctx.lineWidth=2.5;
+      ctx.stroke();
+    }
+
+    if(state.correctPoints.length===5){
+      ctx.beginPath();
+      let started=false;
+      for(let px=-10;px<=10;px+=0.03){
+        const py=f(px);
+        if(py<-10||py>10){ started=false; continue; }
+        if(!started){ ctx.moveTo(X(px),Y(py)); started=true; }
+        else ctx.lineTo(X(px),Y(py));
+      }
+      ctx.strokeStyle="#2563eb";
+      ctx.lineWidth=4;
+      ctx.stroke();
+    }
+
+    for(const a of state.attempts){
+      if(a.correct){
+        const isVertex = a.x===state.h && a.y===state.k;
+        drawPoint(a.x,a.y,isVertex ? "#f59e0b" : "#2563eb", isVertex ? 9 : 7);
+      }else{
+        drawPoint(a.x,a.y,"#dc2626",7);
+      }
+    }
+  }
+
+  function checkTable(){
+    let all=true;
+    let wrongCount=0;
+    yInputs.forEach((input,i)=>{
+      const val=Number(input.value);
+      input.className="";
+      if(input.value!=="" && val===state.ys[i]){
+        input.classList.add("correct");
+      }else{
+        input.classList.add("wrong");
+        all=false;
+        wrongCount++;
+      }
+    });
+
+    if(all){
+      state.tableReady=true;
+      yInputs.forEach(input=>input.disabled=true);
+      tableStatus.className="status ok";
+      tableStatus.textContent="정답입니다! 이제 좌표평면에 다섯 점을 찍으세요.";
+      graphStatus.className="status";
+      graphStatus.textContent=`첫 번째 점 (${state.xs[0]}, ${state.ys[0]})부터 차례대로 찍어 보세요.`;
+    }else{
+      state.tableReady=false;
+      tableStatus.className="status bad";
+      tableStatus.textContent=`${wrongCount}개의 값이 맞지 않습니다. 다시 계산해 보세요.`;
+    }
+  }
+
+  function showAnswers(){
+    yInputs.forEach((input,i)=>{
+      input.value=state.ys[i];
+      input.className="correct";
+    });
+    state.tableReady=true;
+    yInputs.forEach(input=>input.disabled=true);
+    tableStatus.className="status ok";
+    tableStatus.textContent="정답을 표시했습니다. 이제 좌표평면에 점을 찍어 보세요.";
+    graphStatus.className="status";
+    graphStatus.textContent=`첫 번째 점 (${state.xs[0]}, ${state.ys[0]})부터 차례대로 찍어 보세요.`;
+  }
+
+  function canvasToGrid(evt){
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
+    const px=(evt.clientX-rect.left)*scaleX;
+    const py=(evt.clientY-rect.top)*scaleY;
+    return {
+      x:Math.round((px-cx)/step),
+      y:Math.round((cy-py)/step)
+    };
+  }
+
+  canvas.addEventListener("pointerdown", evt=>{
+    if(!state.tableReady){
+      graphStatus.className="status bad";
+      graphStatus.textContent="먼저 대응표를 모두 맞혀 주세요.";
+      return;
+    }
+    if(state.correctPoints.length>=5) return;
+
+    const p=canvasToGrid(evt);
+    if(p.x<-10||p.x>10||p.y<-10||p.y>10) return;
+
+    const index=state.correctPoints.length;
+    const target={x:state.xs[index],y:state.ys[index]};
+    const correct=p.x===target.x && p.y===target.y;
+    state.attempts.push({x:p.x,y:p.y,correct});
+
+    if(correct){
+      state.correctPoints.push(p);
+      if(state.correctPoints.length===5){
+        graphStatus.className="status ok";
+        graphStatus.textContent="완성했습니다! 다섯 점이 포물선으로 연결되었습니다.";
+      }else{
+        const next=state.correctPoints.length;
+        graphStatus.className="status ok";
+        graphStatus.textContent=`맞았습니다! 다음 점은 (${state.xs[next]}, ${state.ys[next]})입니다.`;
+      }
+    }else{
+      graphStatus.className="status bad";
+      graphStatus.textContent=`그 점은 아닙니다. 빨간 점을 되돌리고 (${target.x}, ${target.y})를 다시 찍어 보세요.`;
+    }
+    undoBtn.disabled=state.attempts.length===0;
+    draw();
+  });
+
+  function undo(){
+    if(!state.attempts.length) return;
+    const last=state.attempts.pop();
+    if(last.correct) state.correctPoints.pop();
+    undoBtn.disabled=state.attempts.length===0;
+    if(state.tableReady){
+      const i=state.correctPoints.length;
+      graphStatus.className="status";
+      graphStatus.textContent=`(${state.xs[i]}, ${state.ys[i]})를 찍어 보세요.`;
+    }
+    draw();
+  }
+
+  function resetGraph(){
+    state.attempts=[];
+    state.correctPoints=[];
+    undoBtn.disabled=true;
+    graphStatus.className="status";
+    graphStatus.textContent=state.tableReady
+      ? `첫 번째 점 (${state.xs[0]}, ${state.ys[0]})부터 차례대로 찍어 보세요.`
+      : "대응표를 모두 맞히면 점 찍기 활동이 시작됩니다.";
+    draw();
+  }
+
+  document.getElementById("newProblem").addEventListener("click",chooseProblem);
+  document.getElementById("checkTable").addEventListener("click",checkTable);
+  document.getElementById("showAnswers").addEventListener("click",showAnswers);
+  document.getElementById("undo").addEventListener("click",undo);
+  document.getElementById("resetGraph").addEventListener("click",resetGraph);
+
+  yInputs.forEach((input,i)=>{
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){
+        if(i<4) yInputs[i+1].focus();
+        else checkTable();
+      }
+    });
+  });
+
+  chooseProblem();
+})();
+</script>
+</body>
+</html>
